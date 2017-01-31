@@ -1,43 +1,41 @@
-===============================================================================
-                     MMDAgent "Sample Script" version 1.6
-                           release December 25, 2015
+FSTファイルでは現在時刻の取得ができないので、Rubyで現在時刻を取得するプロクラムを書き、
+その実行ファイル(.exe)をMMDAgentで起動しています。
+APIを使ってWebから天気情報を取得するプログラムも同じようにRubyで書いて、その実行ファイルをMMDAgentで起動しています。
+サブFSTファイルを作り、取得した情報に書き換わるようにしました。
+これらを実装するにはリロードプラグインが必要となります。
+<青柳翔大>
 
 
-The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 
-*******************************************************************************
-                                    Copying
-*******************************************************************************
+プラグインの作成について
+　1.7では必要なくなってるかもしれないが、1.6の段階ではMMDAgentのソースコードをVisual Studioで開いた後に一定の作業をしないとエラーが出る。
+http://cube370.wiki.fc2.com/wiki/MMDAgent%E3%81%AEWindows%E9%96%8B%E7%99%BA%E7%92%B0%E5%A2%83
+このページの「VisualC++2010でビルド」の項目を参考に設定すればOK
+これで既存のコードのビルドは可能になる。
+プラグインを作成したい場合は
+http://www.netsudendo.net/entry/2016/03/27/235459
+このページを参考に新しく作成することが可能。ただし、既存のプラグインを改造する場合は不要
 
-See README.txt and COPYRIGHT.txt in each content directory.
+FSTリロードプラグインについて
+MMDAgentに最新情報（現在時刻や天気予報）を取得させたい場合、いまのところFSTのリロードという形をとるのが一番よい。
+しかしFSTを全てリロードすると再起動と同義なのでサブFSTを用意してそちらのみリロードを行う。
+http://deg-nico.seesaa.net/article/347510962.html
+サブFSTに関しては上記サイトを参考
+VIManager_ThreadにてFSTファイルの読み込み(loadAndStart)およびメモリの解放(stopAndRelease)を行っている。
+そのうち、サブFSTに関する部分のみを抜き出し、メモリの開放→FSTファイルの読み込みを行うメソッドを作成する。
+ReloadAndStartという名前であるので詳しくはそちら。
+上記で作成したメソッドをPlugin_VIManagerで呼び出して実行している。こちらも詳しくはコードを参照。
+結局のところ、起動時に行うFSTの読み込みをほぼ流用している。
+上記2つのほか、VIManager_Thread.hなどで適宜宣言等を行うことでリロードが実装される。
+私たちのデータではFST側で"FST_RELOAD"を呼び出すとリロードするように設計した。
 
-*******************************************************************************
-                                  How to try
-*******************************************************************************
+補足
+このデータではSkeletonというプラグインを作成し、キーボードからの入力を受け付けようと試みた（コメントアウトされている部分）。
+現状ではエラーがあり時間的に厳しかったため、実装までは至らなかった。
+エラーの原因は文字コードがJISのままでUTF-8になっていなかったからではないかと推測しているが真偽は不明
+仕組みとしては外部プログラム(.exe)でコマンドプロントを用いて入力を受け付け、それをテキストで保存
+MMDAgent側では保存されたテキストを読み込むことで間接的に入力していることにしようとした。
+あまりきれいな方法ではない。
 
-Drag and drop MMDAgent_Example.mdf on MMDAgent.exe.
+<鈴木亮平>
 
-*******************************************************************************
-                               Acknowledgements
-*******************************************************************************
-
-Keiichi Tokuda
-Akinobu Lee
-Keiichiro Oura
-
-*******************************************************************************
-                                  Who we are
-*******************************************************************************
-
-The MMDAgent project team is a voluntary group for developing the Toolkit for
-Building Voice Interaction System. Current members are
-
- Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
- Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
- Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
- Daisuke Yamamoto    http://yamamoto.web.nitech.ac.jp/member/yamamoto/yamamoto.html
-
-and the members are dynamically changing. The current formal contact address of
-MMDAgent project team and a mailing list for MMDAgent users can be found at
-http://www.mmdagent.jp/
-===============================================================================
